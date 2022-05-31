@@ -7,7 +7,8 @@ const Home = () => {
   const [collection, setCollectionAddress] = useState('')
   const [NFTs, setNFTs] = useState([])
   const [fetchForCollection, setFetchForCollection] = useState(false)
-  const [nextToken, setNextToken] = useState('')
+  const [nextToken, setNextToken] = useState([{}])
+  // previous token for render previous boton
 
   // Consultando los NFTs de la API de alchemy
   const fetchNFTs = async () => {
@@ -35,22 +36,69 @@ const Home = () => {
     }
   }
 
+  function addNextTokenId(prevId, nextId) {
+    const updateNextTokenId = [
+      ...nextToken,
+      {
+        previousTokenId: prevId,
+        nextTokenId: nextId,
+      },
+    ]
+    setNextToken(updateNextTokenId)
+  }
+
   // Fetch NFT data by collection
-  const fetchNFTsForCollection = async () => {
+  const fetchNFTsForCollection = async (startTokenObj = {}, btnPage = true) => {
+    let previosPage = ''
+    let fetchURL = ''
     if (collection.length) {
       var requestOptions = {
         method: 'GET',
       }
-      const api_key = 'mKRL1jPvyMhgj7JIdp9wRkneUJMZSJpq'
+
+      const api_key = process.env.NEXT_PUBLIC_API_KEY
       const baseURL = `https://eth-mainnet.alchemyapi.io/v2/${api_key}/getNFTsForCollection/`
-      const fetchURL = `${baseURL}?contractAddress=${collection}&withMetadata=${'true'}`
+
+      if (
+        startTokenObj.hasOwnProperty('nextTokenId') &&
+        startTokenObj.hasOwnProperty('previousTokenId')
+      ) {
+        if (btnPage) {
+          fetchURL = `${baseURL}?contractAddress=${collection}&withMetadata=true&startToken=${startTokenObj.nextTokenId}`
+        } else {
+          fetchURL = `${baseURL}?contractAddress=${collection}&withMetadata=true&startToken=${startTokenObj.previousTokenId}`
+          console.log('fetcj...')
+        }
+      } else {
+        fetchURL = `${baseURL}?contractAddress=${collection}&withMetadata=true`
+      }
+
       const nfts = await fetch(fetchURL, requestOptions).then((data) =>
         data.json()
       )
 
       if (nfts) {
         console.log('NFTs in collection:', nfts)
-        setNextToken(nfts.nextToken)
+        // no estoy registrando correctamente el arreglo de objetos
+
+        if (startTokenObj.hasOwnProperty('previousTokenId')) {
+          if (btnPage) {
+            previosPage = startTokenObj.nextTokenId
+            setNextToken({
+              previousTokenId: previosPage,
+              nextTokenId: nfts.nextToken,
+            })
+          } else {
+            setNextToken(startTokenObj)
+            console.log('back')
+          }
+        } else {
+          setNextToken({
+            previousTokenId: previosPage,
+            nextTokenId: nfts.nextToken,
+          })
+        }
+        console.log('back tok:', nextToken)
         setNFTs(nfts.nfts)
       }
     }
@@ -97,7 +145,7 @@ const Home = () => {
           }
           onClick={() => {
             if (fetchForCollection) {
-              fetchNFTsForCollection()
+              fetchNFTsForCollection(nextToken)
             } else fetchNFTs()
           }}
         >
@@ -105,9 +153,14 @@ const Home = () => {
         </button>
       </div>
 
-      {nextToken !== '' && <Pagination nextTokenId={nextToken}></Pagination>}
+      {NFTs.length > 0 && (
+        <Pagination
+          nextToken={nextToken}
+          fetchNFTsForCollection={fetchNFTsForCollection}
+        ></Pagination>
+      )}
       <div className="mt-4 flex w-5/6 flex-wrap justify-center gap-y-12 gap-x-2">
-        {NFTs.length &&
+        {NFTs.length > 0 &&
           NFTs.map((nft) => {
             return <NFTCard nft={nft}></NFTCard>
           })}
