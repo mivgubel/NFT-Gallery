@@ -103,12 +103,8 @@ const Home = () => {
           } else {
             //delete the las item from the array
             let newArray = startTokenObj.slice(0, startTokenObj.length - 1)
-
             setNextToken(newArray)
-            /*  addNextTokenId(
-              startTokenObj[startTokenObj.length - 1].previousTokenId,
-              startTokenObj[startTokenObj.length - 1].nextTokenId
-            )*/
+
             console.log('back')
           }
         } else {
