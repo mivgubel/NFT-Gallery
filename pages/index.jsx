@@ -36,7 +36,7 @@ const Home = () => {
     }
   }
 
-  function addNextTokenId(prevId, nextId) {
+  const addNextTokenId = (prevId, nextId) => {
     const updateNextTokenId = [
       ...nextToken,
       {
@@ -48,7 +48,7 @@ const Home = () => {
   }
 
   // Fetch NFT data by collection
-  const fetchNFTsForCollection = async (startTokenObj = {}, btnPage = true) => {
+  const fetchNFTsForCollection = async (startTokenObj, btnPage = true) => {
     let previosPage = ''
     let fetchURL = ''
     if (collection.length) {
@@ -60,19 +60,30 @@ const Home = () => {
       const baseURL = `https://eth-mainnet.alchemyapi.io/v2/${api_key}/getNFTsForCollection/`
 
       if (
-        startTokenObj.hasOwnProperty('nextTokenId') &&
-        startTokenObj.hasOwnProperty('previousTokenId')
+        startTokenObj[startTokenObj.length - 1].hasOwnProperty('nextTokenId') &&
+        startTokenObj[startTokenObj.length - 1].hasOwnProperty(
+          'previousTokenId'
+        )
       ) {
         if (btnPage) {
-          fetchURL = `${baseURL}?contractAddress=${collection}&withMetadata=true&startToken=${startTokenObj.nextTokenId}`
+          fetchURL = `${baseURL}?contractAddress=${collection}&withMetadata=true&startToken=${
+            startTokenObj[startTokenObj.length - 1].nextTokenId
+          }`
+          console.log(
+            'star id...',
+            startTokenObj[startTokenObj.length - 1].nextTokenId
+          )
         } else {
-          fetchURL = `${baseURL}?contractAddress=${collection}&withMetadata=true&startToken=${startTokenObj.previousTokenId}`
+          fetchURL = `${baseURL}?contractAddress=${collection}&withMetadata=true&startToken=${
+            startTokenObj[startTokenObj.length - 1].previousTokenId
+          }`
           console.log('fetcj...')
         }
       } else {
         fetchURL = `${baseURL}?contractAddress=${collection}&withMetadata=true`
       }
 
+      console.log(fetchURL)
       const nfts = await fetch(fetchURL, requestOptions).then((data) =>
         data.json()
       )
@@ -81,24 +92,29 @@ const Home = () => {
         console.log('NFTs in collection:', nfts)
         // no estoy registrando correctamente el arreglo de objetos
 
-        if (startTokenObj.hasOwnProperty('previousTokenId')) {
+        if (
+          startTokenObj[startTokenObj.length - 1].hasOwnProperty(
+            'previousTokenId'
+          )
+        ) {
           if (btnPage) {
-            previosPage = startTokenObj.nextTokenId
-            setNextToken({
-              previousTokenId: previosPage,
-              nextTokenId: nfts.nextToken,
-            })
+            previosPage = startTokenObj[startTokenObj.length - 1].nextTokenId
+            addNextTokenId(previosPage, nfts.nextToken)
           } else {
-            setNextToken(startTokenObj)
+            //delete the las item from the array
+            let newArray = startTokenObj.slice(0, startTokenObj.length - 1)
+
+            setNextToken(newArray)
+            /*  addNextTokenId(
+              startTokenObj[startTokenObj.length - 1].previousTokenId,
+              startTokenObj[startTokenObj.length - 1].nextTokenId
+            )*/
             console.log('back')
           }
         } else {
-          setNextToken({
-            previousTokenId: previosPage,
-            nextTokenId: nfts.nextToken,
-          })
+          addNextTokenId(previosPage, nfts.nextToken)
         }
-        console.log('back tok:', nextToken)
+        console.log('next tok:', nextToken)
         setNFTs(nfts.nfts)
       }
     }
