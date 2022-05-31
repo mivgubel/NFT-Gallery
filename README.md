@@ -1,4 +1,9 @@
-# Next.js + Tailwind CSS Example
+# NFT Gallery / Alchemy Road To web3
+
+![image](https://user-images.githubusercontent.com/51422943/171297517-ad00ebb4-6a04-4190-a33a-df549203c227.png)
+
+
+## Next.js + Tailwind CSS Example
 
 This example shows how to use [Tailwind CSS](https://tailwindcss.com/) [(v3.0)](https://tailwindcss.com/blog/tailwindcss-v3) with Next.js. It follows the steps outlined in the official [Tailwind docs](https://tailwindcss.com/docs/guides/nextjs).
 
